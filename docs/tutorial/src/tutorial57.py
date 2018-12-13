@@ -1,23 +1,29 @@
-from typing import List, Set
-
 from fastapi import Body, FastAPI, Path, Query
+from starlette.status import HTTP_201_CREATED
 from pydantic import BaseModel
 from pydantic.types import UrlStr
-from starlette.status import HTTP_201_CREATED
-from starlette.responses import HTMLResponse
+from typing import Set, List
 
 app = FastAPI()
 
 
-@app.get("/items/", content_type=HTMLResponse)
-async def read_items():
-    return """
-    <html>
-        <head>
-            <title>Some HTML in here</title>
-        </head>
-        <body>
-            <h1>Look ma! HTML!</h1>
-        </body>
-    </html>
+class Item(BaseModel):
+    name: str
+    description: str = None
+    price: float
+    tax: float = None
+    tags: Set[str] = []
+
+
+@app.post("/items/", response_model=Item, summary="Create an item")
+async def create_item(*, item: Item):
     """
+    Create an item with all the information:
+    
+    * name: each item must have a name
+    * description: a long description
+    * price: required
+    * tax: if the item doesn't have tax, you can omit this
+    * tags: a set of unique tag strings for this item
+    """
+    return item

@@ -1,20 +1,24 @@
 from fastapi import Body, FastAPI, Path, Query
-from starlette.status import HTTP_201_CREATED
 from pydantic import BaseModel
-from pydantic.types import UrlStr
+from pydantic.types import EmailStr
 from typing import Set, List
 
 app = FastAPI()
 
 
-class Item(BaseModel):
-    name: str
-    description: str = None
-    price: float
-    tax: float = None
-    tags: Set[str] = []
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: str = None
 
 
-@app.post("/items/", response_model=Item, status_code=HTTP_201_CREATED)
-async def create_item(*, item: Item):
-    return item
+class UserOut(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str = None
+
+
+@app.post("/user/", response_model=UserOut)
+async def create_user(*, user: UserIn):
+    return user
