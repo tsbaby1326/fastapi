@@ -147,13 +147,11 @@ username_and_password_required = {
 )
 def test_post_body_form(path, body, expected_status, expected_response):
     response = client.post(path, data=body)
-    print(response.text)
     assert response.status_code == expected_status
     assert response.json() == expected_response
 
 
 def test_post_body_json():
     response = client.post("/login/", json={"username": "Foo", "password": "secret"})
-    print(response.text)
     assert response.status_code == 422
     assert response.json() == username_and_password_required
