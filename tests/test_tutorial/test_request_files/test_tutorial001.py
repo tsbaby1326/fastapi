@@ -110,11 +110,12 @@ def test_post_body_json():
     assert response.json() == file_required
 
 
-def test_multipart_request_files(tmpdir):
+def test_post_file(tmpdir):
     path = os.path.join(tmpdir, "test.txt")
     with open(path, "wb") as file:
         file.write(b"<file content>")
 
     client = TestClient(app)
     response = client.post("/files/", files={"file": open(path, "rb")})
+    assert response.status_code == 200
     assert response.json() == {"file_size": 14}
