@@ -1,3 +1,4 @@
+import pytest
 from starlette.testclient import TestClient
 
 from query_params_str_validations.tutorial010 import app
@@ -80,7 +81,42 @@ openapi_schema = {
 }
 
 
-def test_openapi_scheme():
+def test_openapi_schema():
     response = client.get("/openapi.json")
     assert response.status_code == 200
     assert response.json() == openapi_schema
+
+
+regex_error = {
+    "detail": [
+        {
+            "ctx": {"pattern": "^fixedquery$"},
+            "loc": ["query", "item-query"],
+            "msg": 'string does not match regex "^fixedquery$"',
+            "type": "value_error.str.regex",
+        }
+    ]
+}
+
+
+@pytest.mark.parametrize(
+    "q_name,q,expected_status,expected_response",
+    [
+        (None, None, 200, {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}),
+        (
+            "item-query",
+            "fixedquery",
+            200,
+            {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}], "q": "fixedquery"},
+        ),
+        ("q", "fixedquery", 200, {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}),
+        ("item-query", "nonregexquery", 422, regex_error),
+    ],
+)
+def test_query_params_str_validations(q_name, q, expected_status, expected_response):
+    url = "/items/"
+    if q_name and q:
+        url = f"{url}?{q_name}={q}"
+    response = client.get(url)
+    assert response.status_code == expected_status
+    assert response.json() == expected_response
