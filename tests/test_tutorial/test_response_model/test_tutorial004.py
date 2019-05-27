@@ -41,47 +41,7 @@ openapi_schema = {
                         "in": "path",
                     }
                 ],
-            },
-            "patch": {
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {"$ref": "#/components/schemas/Item"}
-                            }
-                        },
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        },
-                    },
-                },
-                "summary": "Update Item",
-                "operationId": "update_item_items__item_id__patch",
-                "parameters": [
-                    {
-                        "required": True,
-                        "schema": {"title": "Item_Id", "type": "string"},
-                        "name": "item_id",
-                        "in": "path",
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {"$ref": "#/components/schemas/Item"}
-                        }
-                    },
-                    "required": True,
-                },
-            },
+            }
         }
     },
     "components": {
@@ -163,15 +123,3 @@ def test_get(url, data):
     response = client.get(url)
     assert response.status_code == 200
     assert response.json() == data
-
-
-def test_patch():
-    response = client.patch(
-        "/items/bar", json={"name": "Barz", "price": 3, "description": None}
-    )
-    assert response.json() == {
-        "name": "Barz",
-        "description": None,
-        "price": 3,
-        "tax": 20.2,
-    }
