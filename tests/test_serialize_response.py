@@ -1,8 +1,7 @@
 from typing import List
 
-import pytest
 from fastapi import FastAPI
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from starlette.testclient import TestClient
 
 app = FastAPI()
@@ -14,38 +13,45 @@ class Item(BaseModel):
     owner_ids: List[int] = None
 
 
-@app.get("/items/invalid", response_model=Item)
-def get_invalid():
-    return {"name": "invalid", "price": "foo"}
+@app.get("/items/valid", response_model=Item)
+def get_valid():
+    return {"name": "valid", "price": 1.0}
 
 
-@app.get("/items/innerinvalid", response_model=Item)
-def get_innerinvalid():
-    return {"name": "double invalid", "price": "foo", "owner_ids": ["foo", "bar"]}
+@app.get("/items/coerce", response_model=Item)
+def get_coerce():
+    return {"name": "coerce", "price": "1.0"}
 
 
-@app.get("/items/invalidlist", response_model=List[Item])
-def get_invalidlist():
+@app.get("/items/validlist", response_model=List[Item])
+def get_validlist():
     return [
         {"name": "foo"},
-        {"name": "bar", "price": "bar"},
-        {"name": "baz", "price": "baz"},
+        {"name": "bar", "price": 1.0},
+        {"name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
     ]
 
 
 client = TestClient(app)
 
 
-def test_invalid():
-    with pytest.raises(ValidationError):
-        client.get("/items/invalid")
+def test_valid():
+    response = client.get("/items/valid")
+    response.raise_for_status()
+    assert response.json() == {"name": "valid", "price": 1.0, "owner_ids": None}
 
 
-def test_double_invalid():
-    with pytest.raises(ValidationError):
-        client.get("/items/innerinvalid")
+def test_coerce():
+    response = client.get("/items/coerce")
+    response.raise_for_status()
+    assert response.json() == {"name": "coerce", "price": 1.0, "owner_ids": None}
 
 
-def test_invalid_list():
-    with pytest.raises(ValidationError):
-        client.get("/items/invalidlist")
+def test_validlist():
+    response = client.get("/items/validlist")
+    response.raise_for_status()
+    assert response.json() == [
+        {"name": "foo", "price": None, "owner_ids": None},
+        {"name": "bar", "price": 1.0, "owner_ids": None},
+        {"name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
+    ]
