@@ -8,8 +8,18 @@ openapi_schema = {
     "openapi": "3.0.2",
     "info": {"title": "Fast API", "version": "0.1.0"},
     "paths": {
-        "/items/{item_id}": {
-            "get": {
+        "/items/": {
+            "post": {
+                "summary": "Create Item",
+                "operationId": "create_item_items__post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/Item"}
+                        }
+                    },
+                    "required": True,
+                },
                 "responses": {
                     "200": {
                         "description": "Successful Response",
@@ -26,21 +36,31 @@ openapi_schema = {
                         },
                     },
                 },
-                "summary": "Read Item",
-                "operationId": "read_item_items__item_id__get",
-                "parameters": [
-                    {
-                        "required": True,
-                        "schema": {"title": "Item Id", "type": "integer"},
-                        "name": "item_id",
-                        "in": "path",
-                    }
-                ],
             }
         }
     },
     "components": {
         "schemas": {
+            "HTTPValidationError": {
+                "title": "HTTPValidationError",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "title": "Detail",
+                        "type": "array",
+                        "items": {"$ref": "#/components/schemas/ValidationError"},
+                    }
+                },
+            },
+            "Item": {
+                "title": "Item",
+                "required": ["title", "size"],
+                "type": "object",
+                "properties": {
+                    "title": {"title": "Title", "type": "string"},
+                    "size": {"title": "Size", "type": "integer"},
+                },
+            },
             "ValidationError": {
                 "title": "ValidationError",
                 "required": ["loc", "msg", "type"],
@@ -55,17 +75,6 @@ openapi_schema = {
                     "type": {"title": "Error Type", "type": "string"},
                 },
             },
-            "HTTPValidationError": {
-                "title": "HTTPValidationError",
-                "type": "object",
-                "properties": {
-                    "detail": {
-                        "title": "Detail",
-                        "type": "array",
-                        "items": {"$ref": "#/components/schemas/ValidationError"},
-                    }
-                },
-            },
         }
     },
 }
@@ -77,27 +86,23 @@ def test_openapi_schema():
     assert response.json() == openapi_schema
 
 
-def test_get_validation_error():
-    response = client.get("/items/foo")
+def test_post_validation_error():
+    response = client.post("/items/", json={"title": "towel", "size": "XL"})
     assert response.status_code == 422
     assert response.json() == {
         "detail": [
             {
-                "loc": ["path", "item_id"],
+                "loc": ["body", "item", "size"],
                 "msg": "value is not a valid integer",
                 "type": "type_error.integer",
             }
-        ]
+        ],
+        "body": {"title": "towel", "size": "XL"},
     }
 
 
-def test_get_http_error():
-    response = client.get("/items/3")
-    assert response.status_code == 418
-    assert response.json() == {"detail": "Nope! I don't like 3."}
-
-
-def test_get():
-    response = client.get("/items/2")
+def test_post():
+    data = {"title": "towel", "size": 5}
+    response = client.post("/items/", json=data)
     assert response.status_code == 200
-    assert response.json() == {"item_id": 2}
+    assert response.json() == data
