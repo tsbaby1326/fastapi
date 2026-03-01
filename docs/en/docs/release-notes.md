@@ -7,6 +7,8 @@ hide:
 
 ## Latest Changes
 
+## 0.135.1
+
 ### Fixes
 
 * 🐛 Fix, avoid yield from a TaskGroup, only as an async context manager, closed in the request async exit stack. PR [#15038](https://github.com/fastapi/fastapi/pull/15038) by [@tiangolo](https://github.com/tiangolo).
