@@ -7,6 +7,10 @@ hide:
 
 ## Latest Changes
 
+### Fixes
+
+* 🐛 Fix, avoid yield from a TaskGroup, only as an async context manager, closed in the request async exit stack. PR [#15038](https://github.com/fastapi/fastapi/pull/15038) by [@tiangolo](https://github.com/tiangolo).
+
 ### Docs
 
 * ✏️ Fix typo in `docs/en/docs/_llm-test.md`. PR [#15007](https://github.com/fastapi/fastapi/pull/15007) by [@adityagiri3600](https://github.com/adityagiri3600).
